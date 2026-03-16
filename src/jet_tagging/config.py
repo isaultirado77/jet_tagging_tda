@@ -5,9 +5,11 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 # Paths
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
+JETS_RAW_DIR = RAW_DIR / "jets"
 PROCESSED_DIR = DATA_DIR / "processed"
-JETS_DIR = PROCESSED_DIR / "jets"
-JET_IMAGES_DIR = PROCESSED_DIR / "images"
+JETS_PROCESSED_DIR = PROCESSED_DIR / "jets"
+TOPOLOGY_DIR = DATA_DIR / "topology"
+
 
 # helper functions
 def ensure_directories():
@@ -15,8 +17,9 @@ def ensure_directories():
         DATA_DIR, 
         RAW_DIR, 
         PROCESSED_DIR, 
-        JETS_DIR, 
-        JET_IMAGES_DIR, 
+        JETS_RAW_DIR, 
+        JETS_PROCESSED_DIR, 
+        TOPOLOGY_DIR
     ]
 
     for d in dirs:
