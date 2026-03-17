@@ -1,22 +1,20 @@
-from pathlib import Path
 import zipfile
 import tarfile
 import requests
 from tqdm import tqdm
 
 from jet_tagging.config import (
-    DATA_DIR,
-    RAW_DIR, 
+    RAW_DIR,
+    JETS_RAW_DIR
 )
-
-RAW_DIR.mkdir(parents=True, exist_ok=True)
 
 URL = "https://zenodo.org/api/records/3602260/files-archive"
 
-def download_hls4ml(chunk_size=1024 * 1024):
+
+def download_hls4ml(chunk_size=100*1024**2):
 
     filename = "hls4ml_dataset.zip"
-    file_path = RAW_DIR / filename
+    file_path = JETS_RAW_DIR / filename
 
     if file_path.exists():
         print('Dataset already exists!')
@@ -29,7 +27,7 @@ def download_hls4ml(chunk_size=1024 * 1024):
 
         with open(file_path, 'wb') as f, tqdm(
             total=total,
-            unit="B",
+            unit='B',
             unit_scale=True,
             desc='Downloading dataset'
         ) as pbar:
@@ -41,62 +39,73 @@ def download_hls4ml(chunk_size=1024 * 1024):
 
     return file_path
 
+
 def unpack_zip(zip_path):
 
     with zipfile.ZipFile(zip_path) as z:
 
-        members = z.namelist()
+        extracted_files = []
 
-        for m in members:
+        for member in z.namelist():
 
-            out_path = RAW_DIR / m
+            out_path = JETS_RAW_DIR / member
 
             if out_path.exists():
                 continue
 
-            z.extract(m, RAW_DIR)
+            z.extract(member, JETS_RAW_DIR)
+            extracted_files.append(out_path)
 
-    return members
+    return extracted_files
 
-def unpack_tar_files():
 
-    extracted = []
+def unpack_tar_files(tar_paths):
 
-    for tar_path in RAW_DIR.glob("*.tar.gz"):
+    extracted_files = []
+
+    for tar_path in tar_paths:
 
         with tarfile.open(tar_path, 'r:gz') as tar:
 
             for member in tar.getmembers():
 
-                out_path = RAW_DIR / member.name
+                out_path = JETS_RAW_DIR / member.name
 
                 if out_path.exists():
                     continue
 
-                tar.extract(member, RAW)
+                tar.extract(member, JETS_RAW_DIR)
 
-                extracted.append(out_path)
+                extracted_files.append(out_path)
 
-    return extracted
+    return extracted_files
 
-def pipeline_hls4ml(remove_compressed=True):
+
+def pipeline_hls4ml(remove_compressed=False):
+
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
 
     zip_path = download_hls4ml()
 
-    unpack_zip(zip_path)
+    tar_paths = unpack_zip(zip_path)
 
-    unpack_tar_files()
+    _ = unpack_tar_files(tar_paths)
 
     if remove_compressed:
-        for c in RAW_DIR.glob("*.zip"):
-            c.unlink()
 
-        for c in RAW.glob("*.tar.gz"):
-            c.unlink()
+        for compressed_file in RAW_DIR.glob("*.zip"):
+            compressed_file.unlink()
 
-    print('Dataset ready!')
+        for compressed_file in RAW_DIR.glob("*.tar.gz"):
+            compressed_file.unlink()
 
-    return sorted((RAW / "train").glob("*.h5"))
+    print("Dataset ready!")
 
-if __name__ == "__main__": 
+    train_dir = JETS_RAW_DIR / "train"
+    return sorted(train_dir.glob("*.h5"))
+
+
+if __name__ == "__main__":
     files = pipeline_hls4ml()
+    for f in files:
+        print(f)
