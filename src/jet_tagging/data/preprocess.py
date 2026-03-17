@@ -99,10 +99,8 @@ def build_dataset_parallel(input_dir, output_dir, workers=8):
 
 def main(): 
     train_dir = JETS_RAW_DIR / "train"
-    processed_jets_dir = JETS_PROCESSED_DIR / "jets"
-    build_dataset(train_dir, processed_jets_dir)
+    build_dataset(train_dir, JETS_PROCESSED_DIR)
 
 
 if __name__ == "__main__":
-    # print('hola') 
-    main()    
+    main()
