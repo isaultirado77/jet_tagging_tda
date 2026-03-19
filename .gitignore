@@ -20,5 +20,9 @@ wheels/
 results/*
 !results/.gitkeep
 
+# Logs
+logs/*
+!logs/.gitkeep
+
 # others
 todo.md
