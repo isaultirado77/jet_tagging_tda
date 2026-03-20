@@ -11,11 +11,12 @@ from jet_tagging.config import (
 )
 from jet_tagging.features.persistence_images import (
     get_diagram, 
-    clean_diagram
+    clean_diagram, 
+    build_global_imager
 )
 
 
-def process_file(input_path, output_path, resolution=40):
+def process_file(input_path, output_path, pimgr):
 
     with h5py.File(input_path) as f:
 
@@ -29,12 +30,8 @@ def process_file(input_path, output_path, resolution=40):
 
     n = len(labels)
 
-    pimgr = PersistenceImager(pixel_size=1/resolution)
-
     imgs_H0 = []
     imgs_H1 = []
-    imgs_S = []  # sum of persistence images
-
 
     for i in tqdm(range(n)):
 
@@ -47,16 +44,11 @@ def process_file(input_path, output_path, resolution=40):
         img0 = pimgr.transform(H0)
         img1 = pimgr.transform(H1)
 
-        imgS = img0 + img1
-
         imgs_H0.append(img0)
         imgs_H1.append(img1)
-        imgs_S.append(imgS)
-
+        
     imgs_H0 = np.array(imgs_H0)
     imgs_H1 = np.array(imgs_H1)
-    imgs_S = np.array(imgs_S)
-
 
     with h5py.File(output_path, 'w') as f:
 
@@ -73,12 +65,6 @@ def process_file(input_path, output_path, resolution=40):
         )
 
         f.create_dataset(
-            "pi_S",
-            data=imgs_S,
-            compression='gzip'
-        )
-
-        f.create_dataset(
             "labels",
             data=labels
         )
@@ -90,6 +76,8 @@ def compute_persistence_images_dataset(input_dir, output_dir):
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    pimgr = build_global_imager(files)
+
     for file in files:
 
         out = output_dir / f"pi_{file.stem}.h5"
@@ -97,7 +85,7 @@ def compute_persistence_images_dataset(input_dir, output_dir):
         if out.exists():
             continue
 
-        process_file(file, out)
+        process_file(file, out, pimgr)
 
 
 def main(): 

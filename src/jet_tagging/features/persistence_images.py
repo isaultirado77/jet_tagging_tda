@@ -1,3 +1,4 @@
+import h5py
 import numpy as np
 from persim import PersistenceImager
 
@@ -19,37 +20,47 @@ def clean_diagram(D):
     return D[mask]
 
 
-def compute_pi_ranges(H):
-    if H.size == 0:
-        return (0, 1), (0, 1)
-    
-    births = H[:, 0]
-    pers = H[:, 1] - births
-    
-    bmin, bmax = births.min(), births.max()
-    pmin, pmax = pers.min(), pers.max()
-    
+def compute_global_ranges(files):
+    bmin, bmax = np.inf, -np.inf
+    pmin, pmax = np.inf, -np.inf
+
+    for file in files:
+        with h5py.File(file) as f:
+            for key_vals, key_off in [("H0_values", "H0_offsets"), ("H1_values", "H1_offsets")]:
+                
+                vals = f[key_vals][:]
+                offs = f[key_off][:]
+
+                for i in range(len(offs) - 1):
+                    D = get_diagram(vals, offs, i)
+                    D = clean_diagram(D)
+
+                    if len(D) == 0:
+                        continue
+
+                    births = D[:, 0]
+                    pers = D[:, 1] - births
+
+                    bmin = min(bmin, births.min())
+                    bmax = max(bmax, births.max())
+                    pmin = min(pmin, pers.min())
+                    pmax = max(pmax, pers.max())
+
     l = max(bmax - bmin, pmax - pmin)
-    if l == 0: 
+    if l == 0:
         l = 1e-6
-    
-    birth_range = (bmin, bmin + l)
-    pers_range = (pmin, pmin + l)
-    
-    return birth_range, pers_range
+
+    return (bmin, bmin + l), (pmin, pmin + l)
 
 
-def make_imager(H, resolution=40):
+def build_global_imager(files, resolution=40):
+    birth_range, pers_range = compute_global_ranges(files)
 
-    pimgr = PersistenceImager(
-        pixel_size=1/resolution
+    pixel_size = (pers_range[1] - pers_range[0]) / resolution
+
+    return PersistenceImager(
+        birth_range=birth_range,
+        pers_range=pers_range,
+        pixel_size=pixel_size,
+        kernel_params={'sigma': 0.001}
     )
-
-    return pimgr
-
-
-def diagram_to_pi(diagram, pimgr):
-
-    diagram = clean_diagram(diagram)
-
-    return pimgr.transform(diagram)
