@@ -62,5 +62,5 @@ def build_global_imager(files, resolution=40):
         birth_range=birth_range,
         pers_range=pers_range,
         pixel_size=pixel_size,
-        kernel_params={'sigma': 0.001}
+        kernel_params={'sigma': 0.01}
     )
