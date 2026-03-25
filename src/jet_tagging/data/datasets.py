@@ -47,6 +47,10 @@ class PersistenceImagesDataset(Dataset):
 
         img = self.images[idx]
 
+        # normalziation
+        img = np.log1p(img)
+        img = img / (img.sum() + 1e-8)
+
         img = torch.tensor(img, dtype=torch.float32).unsqueeze(0)
 
         label = torch.tensor(self.labels[idx], dtype=torch.long)
@@ -72,6 +76,13 @@ class PersistenceImagesStackedDataset(Dataset):
 
         h0 = self.H0[idx]
         h1 = self.H1[idx]
+
+        # normalization
+        h0 = np.log1p(h0)
+        h0 = h0 / (h0.sum() + 1e-8)
+
+        h1 = np.log1p(h1)
+        h1 = h1 / (h1.sum() + 1e-8)
 
         # (2,40,40)
         img = torch.tensor(np.array([h0, h1]), dtype=torch.float32)
