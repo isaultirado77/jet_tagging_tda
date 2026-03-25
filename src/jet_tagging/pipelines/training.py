@@ -165,9 +165,12 @@ def main():
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
 
+    generator = torch.Generator().manual_seed(42)
+
     train_dataset, val_dataset = random_split(
         dataset,
-        [train_size, val_size]
+        [train_size, val_size],
+        generator=generator
     )
 
     train_loader = DataLoader(
@@ -175,7 +178,6 @@ def main():
         batch_size=batch_size,
         shuffle=True,
         num_workers=4,
-        pin_memory=True
     )
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
