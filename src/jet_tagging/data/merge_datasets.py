@@ -58,7 +58,6 @@ def main():
     topology_keys = [
         'pi_H0', 
         'pi_H1', 
-        'pi_S', 
         'labels'
     ]
     jets_keys = [
@@ -83,12 +82,12 @@ def main():
         )
 
     for key in jets_keys: 
-        _ = merge_datasets(
-            JETS_PROCESSED_DIR, 
-            jets_merged_path, 
-            key, 
-            total_samples
-        )
+       _ = merge_datasets(
+           JETS_PROCESSED_DIR, 
+           jets_merged_path, 
+           key, 
+           total_samples
+       )
 
 
 if __name__ == "__main__": 
